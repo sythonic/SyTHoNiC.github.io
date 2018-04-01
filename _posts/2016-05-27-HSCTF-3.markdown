@@ -1,0 +1,669 @@
+---
+title:  "CTF - HSCTF 3"
+date:   2016-05-27 21:11:44
+categories: [CTF]
+tags: [CTF]
+---
+<p>HSCTF ("High School Capture the Flag") is the first CTF designed by high schoolers for high schoolers. Unlike other CTFs, 
+HSCTF isn't purely about computer security. It extends the CTF model of competition to other areas of computer science such 
+as the design and analysis of algorithms and programming languages. Each challenge will still have a flag, and most of our challenges will fall into the traditional CTF categories of cryptography, reverse engineering, programming languages, 
+forensics, and reconnaissance.</p>
+
+<hr>
+<br>
+
+## * There's Always One - 100: Cryptography ~
+<br>
+**Challenge:**  
+You know what to do: 
+
+```
+jeaud_squiqh_syfxuh_fherbuc
+```
+
+**Solution:**  
+We tried to bruteforce the cipher text using [planetcalc.com](http://www.planetcalc.com/1434/){:target="_blank"} and found that this was Caesar cipher with the key ROT-10
+
+```
+ROT10:	token_caesar_cipher_problem
+```
+
+**Flag:**  
+
+```
+token_caesar_cipher_problem
+```
+
+<hr>
+<br>
+
+## * Login 1 - 100: Exploitation ~
+<br>
+**Challenge:**  
+Help Keith login to [a super secure website](http://ctf.1e100.io/login1/){:target="_blank"}!
+
+**Solution:**  
+Simply we found the username and password in the source code itself:
+
+```
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Login</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+</head>
+<body>
+<div class="container" style="margin-top: 150px">
+    <div class="row">
+        <div class="col-md-2"></div>
+
+        <div class="col-md-8">
+            <form id="login">
+                <input type="hidden" name="csrf_token" value="<?php echo hash('sha256', microtime(true) + mt_rand(0, 99999999) + "lol"); ?>">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" class="form-control" id="username" name="username" placeholder="Username">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" class="form-control" id="password" name="password" placeholder="Password">
+                </div>
+                <button type="submit" class="btn btn-default">Login</button>
+            </form>
+        </div>
+
+        <div class="col-md-2"></div>
+
+    </div>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+<script>
+    $(document).ready(function(){
+        $("#login").submit(function(e){
+            e.preventDefault();
+            var username = $("#username").val();
+            var password = $("#password").val();
+            if(username == "admin" && password == "supersecure") {
+                document.location = "success.php";
+            } else {
+                alert("Incorrect username and password!");
+            }
+        });
+    });
+</script>
+</body>
+</html>
+```
+
+We entered the `Username = "admin" & Password = "supersecure"`, and this gave us the flag:
+
+```
+The flag is super_secure_javascript_login
+```
+
+**Flag:**  
+
+```
+super_secure_javascript_login
+```
+
+<hr>
+<br>
+
+## * Keith vs DJ Khaled - 100: Reversing ~
+<br>
+**Challenge:**  
+Keith is rap-battling DJ Khaled, and is losing badly. However, DJ Khlaed has accidentally given Keith his one lyrical weakness in the form of code, which - if used against him - will cause DJ Khaled to disintegrate into a pile of cash and diamonds. Help Keith figure out what to say to win! The code is given below:
+
+```java
+import java.util.Base64;
+import java.util.Scanner;
+
+public class Reversing {
+    public static String confuse(String w) {
+        String string = "";
+        String[] bits = w.split("");
+        for(int i = 0; i < bits.length; i++) {
+            char y = bits[i].charAt(0);
+            y = (char)(Math.pow(y, 2) / 120);
+            bits[i] = y + "";
+            string += bits[i];
+        }
+        return string;
+    }
+
+    public static String confuse2(String w) {
+        byte[] b = w.getBytes();
+        return Base64.getEncoder().encodeToString(b);
+    }
+
+    public static void check(String key) {
+        String ans = confuse2(confuse(key));
+        if(!ans.equals("TmRmcFpVbEtmZFU=")) {
+            System.out.println("DJ Khaled is not impressed.");
+        }
+        else {
+            System.out.println("You have achieved the key to success! The flag is '" + key + "'");
+        }
+    }
+
+    public static void main(String[]args) {
+        Scanner k = new Scanner(System.in);
+        String ans = k.nextLine();
+        check(ans);
+    }
+}
+```
+
+**Solution:**  
+We wrote the following java program to reverse the encryption:
+
+```java
+import java.util.Arrays;
+import java.util.Base64;
+
+public class KeithVsDjKhaled {
+
+    public static void main(String[] args) {
+        String encoded = "TmRmcFpVbEtmZFU=";
+        System.out.println("encoded = " + encoded);
+
+        byte[] decoded = Base64.getDecoder().decode(encoded);
+        String decoded2ToString = new String(decoded);
+        System.out.println("decoded2ToString = " + decoded2ToString);
+
+        String[] bits = decoded2ToString.split("");
+        System.out.println(Arrays.toString(decoded));
+        String FTW = "";
+        for (int i = 0; i < bits.length; i++) {
+            char y = bits[i].charAt(0);
+            y = (char) (Math.sqrt(y * 120) + 1);
+            bits[i] = y + "";
+            FTW += bits[i];
+        }
+        System.out.println("FTW = " + FTW);
+    }
+}
+```
+
+And the output was:
+
+```
+run:
+encoded = TmRmcFpVbEtmZFU=
+decoded2ToString = NdfpZUlKfdU
+[78, 100, 102, 112, 90, 85, 108, 75, 102, 100, 85]
+FTW = another_one
+BUILD SUCCESSFUL (total time: 1 second)
+```
+
+**Flag:**  
+
+```
+another_one
+```
+
+<hr>
+<br>
+
+## * Keith Smash - 100: Reversing ~
+<br>
+**Challenge:**  
+Keith is planning their big debut at the Super Smash Bros Melee World Tournament! Keith intercepted a program that tells their opponents on which frame to use the legendary Falcon Knee attack, and must figure out the frame so that they can execute a counter! The program can be found here:
+
+```java
+import java.util.Random;
+import java.util.Scanner;
+
+public class PlsHalp {
+	public static void main(String[] args) {
+		Scanner s = new Scanner(System.in);
+		
+		int i = s.nextInt();
+		args = new String[i];
+		for(int x = i-1; x >= 0; x--)
+			args[x] = s.nextLine();
+		
+		String tot = "";
+		for(String str: args)
+			tot += str;
+		
+		if(tot.equals("my feet smell and nose runs"))
+			System.out.println("Use knee on frame: " + (args[0] + args[2] + args[4] + args[6]).replace(" ", "").hashCode());
+	}
+}
+```
+
+**Solution:**  
+We wrote the following java program to calculate the frame:
+
+```java
+import java.util.Arrays;
+import java.util.Scanner;
+
+public class KeithSmash {
+
+    public static void main(String[] args) {
+
+        Scanner s = new Scanner(System.in);
+        //get array size
+        int i = s.nextInt();
+        args = new String[i];
+        for (int x = i - 1; x >= 0; x--) {
+            args[x] = s.nextLine();
+        }
+
+        String tot = "";
+        for (String str : args) {
+            tot += str;
+        }
+        System.out.println("tot = " + tot);
+        if (tot.equals("my feet smell and nose runs")) {
+            System.out.println("Use knee on frame: " + (args[0] + args[2] + args[4] + args[6]).replace(" ", "").hashCode());
+        }
+        System.out.println(Arrays.toString(args));
+    }
+}
+```
+
+And the output was:
+
+```
+run:
+7
+ runs
+ nose
+ and
+ smell
+ feet
+my
+tot = my feet smell and nose runs
+Use knee on frame: 1325066802
+[my,  feet,  smell,  and,  nose,  runs, ]
+BUILD SUCCESSFUL (total time: 51 seconds)
+```
+
+**Flag:**  
+
+```
+1325066802
+```
+
+<hr>
+<br>
+
+## * Login 2 - 100: Exploitation ~
+<br>
+**Challenge:**  
+Help Keith login to [a super secure website](http://ctf.1e100.io/login2/){:target="_blank"}! 
+
+**Solution:**  
+Simply we found the username and hashed password (md5) in the source code itself:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Login</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+</head>
+<body>
+<div class="container" style="margin-top: 150px">
+    <div class="row">
+        <div class="col-md-2"></div>
+
+        <div class="col-md-8">
+            <form id="login">
+                <input type="hidden" name="csrf_token" value="<?php echo hash('sha256', microtime(true) + mt_rand(0, 99999999) + "lol"); ?>">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" class="form-control" id="username" name="username" placeholder="Username">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" class="form-control" id="password" name="password" placeholder="Password">
+                </div>
+                <button type="submit" class="btn btn-default">Login</button>
+            </form>
+        </div>
+
+        <div class="col-md-2"></div>
+
+    </div>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+<script src="md5.min.js"></script>
+<script>
+    $(document).ready(function(){
+        $("#login").submit(function(e){
+            e.preventDefault();
+            var username = $("#username").val();
+            var password = $("#password").val();
+            if(username == "admin" && md5(password) == "d5aa1729c8c253e5d917a5264855eab8") {
+                document.location = "success.php?password=" + password;
+            } else {
+                alert("Incorrect username and password!");
+            }
+        });
+    });
+</script>
+</body>
+</html>
+```
+
+We tried to crack the hashed password using databases and rainbow tables in [md5cracker.org](http://md5cracker.org/){:target="_blank"} and got the results as shown below:
+
+```
+md5cracker.org
+result: freedom
+TMTO[dot]ORG
+error: not found
+md5.net
+result: freedom
+md5online.net
+result: freedom
+MD5.My-Addr.com
+result: freedom
+md5decryption.com
+result: freedom
+md5crack
+result: freedom
+AuthSecu
+error: not found
+NetMD5Crack
+result: freedom
+md5pass
+error: not found
+i337.NET
+result: freedom 
+```
+
+So we entered the `Username = "admin" & Password = "freedom"`, and this gave us the flag:
+
+```
+The flag is super_secure_javascript_login_with_md5_support
+```
+
+**Flag:**  
+
+```
+super_secure_javascript_login_with_md5_support
+```
+
+<hr>
+<br>
+
+## * Keith Is A Troll 2 - 100: Exploitation ~
+<br>
+**Challenge:**  
+You cracked Keith's last database, but he fixed that. Now he has a login that you really can't get past. Or can you? The code that is used for login is given below:
+
+```java
+import java.util.Scanner;
+
+public class KeithLikesToTroll2 {
+	public static void main2(String[] args){
+		int key;
+		
+		Scanner scn = new Scanner(System.in);
+		System.out.print("Enter key: ");
+		key = scn.nextInt();
+		scn.close();
+		
+		if(24.0 / key * key != 24.0 && key > 0){
+			System.out.println("Login succesful. The flag is the smallest key which will let you log in.");
+		}else{
+			System.out.println("Login rejected.");
+		}
+	}
+}
+```
+
+**Solution:**  
+We wrote the following java program to calculate the key:
+
+```java
+import java.util.Scanner;
+
+public class KeithIsATroll2 {
+
+    public static void main(String[] args) {
+
+        int key;
+        for(int i=1; i<50; i++){
+            double ans = 24.0/i * i;
+            System.out.println("24.0 / " + i + " * " + i + "  =  " + ans);
+        }
+        
+        Scanner scn = new Scanner(System.in);
+        System.out.print("Enter key: ");
+        key = scn.nextInt();
+        scn.close();
+               
+        if (24.0 / key * key != 24.0 && key > 0) {
+            System.out.println("Login succesful. The flag is the smallest key which will let you log in.");
+        } else {
+            System.out.println("Login rejected.");
+        }
+    }
+}
+```
+
+And the output was:
+
+```
+run:
+24.0 / 1 * 1  =  24.0
+24.0 / 2 * 2  =  24.0
+24.0 / 3 * 3  =  24.0
+24.0 / 4 * 4  =  24.0
+24.0 / 5 * 5  =  24.0
+24.0 / 6 * 6  =  24.0
+24.0 / 7 * 7  =  24.0
+24.0 / 8 * 8  =  24.0
+24.0 / 9 * 9  =  24.0
+24.0 / 10 * 10  =  24.0
+24.0 / 11 * 11  =  24.0
+24.0 / 12 * 12  =  24.0
+24.0 / 13 * 13  =  24.0
+24.0 / 14 * 14  =  24.0
+24.0 / 15 * 15  =  24.0
+24.0 / 16 * 16  =  24.0
+24.0 / 17 * 17  =  24.0
+24.0 / 18 * 18  =  24.0
+24.0 / 19 * 19  =  24.0
+24.0 / 20 * 20  =  24.0
+24.0 / 21 * 21  =  24.0
+24.0 / 22 * 22  =  24.0
+24.0 / 23 * 23  =  24.0
+24.0 / 24 * 24  =  24.0
+24.0 / 25 * 25  =  24.0
+24.0 / 26 * 26  =  24.0
+24.0 / 27 * 27  =  24.0
+24.0 / 28 * 28  =  24.0
+24.0 / 29 * 29  =  24.0
+24.0 / 30 * 30  =  24.0
+24.0 / 31 * 31  =  24.0
+24.0 / 32 * 32  =  24.0
+24.0 / 33 * 33  =  24.0
+24.0 / 34 * 34  =  24.0
+24.0 / 35 * 35  =  24.0
+24.0 / 36 * 36  =  24.0
+24.0 / 37 * 37  =  24.0
+24.0 / 38 * 38  =  24.0
+24.0 / 39 * 39  =  24.0
+24.0 / 40 * 40  =  24.0
+24.0 / 41 * 41  =  24.0
+24.0 / 42 * 42  =  24.0
+24.0 / 43 * 43  =  24.0
+24.0 / 44 * 44  =  24.0
+24.0 / 45 * 45  =  24.0
+24.0 / 46 * 46  =  24.0
+24.0 / 47 * 47  =  23.999999999999996
+24.0 / 48 * 48  =  24.0
+24.0 / 49 * 49  =  24.0
+Enter key: 47
+Login succesful. The flag is the smallest key which will let you log in.
+BUILD SUCCESSFUL (total time: 4 seconds)
+```
+
+**Flag:**  
+
+```
+47
+```
+
+<hr>
+<br>
+
+## * Keith Is A Troll - 100: Exploitation ~
+<br>
+**Challenge:**  
+Ha! Keith likes to troll, and now he's trolling you! He has written a login that he says is impossible to get into. Can you prove him wrong? The code that is used for login is given below:
+
+```java
+import java.util.Scanner;
+
+public class KeithLikesToTroll {
+	public static void main(String[] args){
+		int key;
+		
+		Scanner scn = new Scanner(System.in);
+		System.out.print("Enter key: ");
+		key = scn.nextInt();
+		scn.close();
+		
+		if(1338557220 / key * key != 1338557220 && key > 0){
+			System.out.println("Login succesful. The flag is the smallest key which will let you log in.");
+		}else{
+			System.out.println("Login rejected.");
+		}
+	}
+}
+```
+
+**Solution:**  
+We wrote the following java program to calculate the key:
+
+```java
+import java.util.Scanner;
+
+public class KeithIsATroll {
+
+    public static void main(String[] args) {
+
+        int key;
+        for(int i=1; i<10; i++){
+            int ans = 1338557220 / i * i;
+            System.out.println("1338557220 / " + i + " * " + i + "  =  " + ans);
+        }
+        Scanner scn = new Scanner(System.in);
+        System.out.print("Enter key: ");
+        key = scn.nextInt();
+        scn.close();
+
+        if (1338557220 / key * key != 1338557220 && key > 0) {
+            System.out.println("Login succesful. The flag is the smallest key which will let you log in.");
+        } else {
+            System.out.println("Login rejected.");
+        }
+    }
+}
+```
+
+And the output was:
+
+```
+run:
+1338557220 / 1 * 1  =  1338557220
+1338557220 / 2 * 2  =  1338557220
+1338557220 / 3 * 3  =  1338557220
+1338557220 / 4 * 4  =  1338557220
+1338557220 / 5 * 5  =  1338557220
+1338557220 / 6 * 6  =  1338557220
+1338557220 / 7 * 7  =  1338557220
+1338557220 / 8 * 8  =  1338557216
+1338557220 / 9 * 9  =  1338557220
+Enter key: 8
+Login succesful. The flag is the smallest key which will let you log in.
+BUILD SUCCESSFUL (total time: 14 seconds)
+```
+
+**Flag:**  
+
+```
+8
+```
+
+<hr>
+<br>
+
+## * Black Square - 100: Forensics ~
+<br>
+**Challenge:**  
+Keith found a [black square](https://github.com/sythonic/sythonic.github.io/blob/master/2016-05-27-HSCTF-3_writeupfiles/BlackSquare.png){:target="_blank"}, what is its secret message.
+
+**Solution:**  
+We uploaded the picture to the [photo-forensics](https://29a.ch/photo-forensics/){:target="_blank"} website and found the hidden flag.
+
+![Solution.png](https://github.com/sythonic/sythonic.github.io/blob/master/2016-05-27-HSCTF-3_writeupfiles/Solution.png?raw=true "Solution.png")
+
+**Flag:**  
+
+```
+this_is_so_easy_a_delusional_groudhog_could_do_it
+```
+
+<hr>
+<br>
+
+## * Wondrous Numbers - 200: Algorithms ~
+<br>
+**Challenge:**  
+Legend has it that, given an infinite number of steps, you can reduce any given number 'n' to 1 by repeating the following steps:
+- If the number is even, divide by two.
+- If the number is odd, multiply it by three and add one.
+What number between 1 and 100 requires the largest amount of these steps before 1 is reached?
+
+**Solution:**  
+We wrote the following Python code to find the answer:
+
+```python
+#!/usr/bin/env python
+   for i in range (2,101):
+      print i
+      a = i
+      counter = 0
+
+      while a > 1:
+          counter = counter+1
+          print counter
+
+          if a % 2 == 0:
+              a = a / 2
+          elif a % 2 == 1:
+              a = a *3 +1
+          else :
+              print "None"
+              
+      print "\n"
+```
+
+**Flag:**  
+
+```
+97
+```
+
+<hr>
+<br>

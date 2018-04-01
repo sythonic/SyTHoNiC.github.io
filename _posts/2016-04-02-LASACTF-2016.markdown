@@ -1,0 +1,428 @@
+---
+title:  "CTF - LASACTF 2016"
+date:   2016-04-02 08:04:23
+categories: [CTF]
+tags: [CTF]
+---
+LASACTF is an online computer science and security competition run by students from the Liberal Arts and Science Academy in Austin, TX. Competitors will exploit, decrypt, reverse engineer, and hack their way through a diverse set of challenges, gaining valuable experience along the way.<br>
+**NOTE: Unfortunately this event was cancelled after a couple of days due to a security breach. It was a well-organized CTF and we really enjoying it.**
+
+<hr>
+<br>
+
+## * Crypto 10: Shifty Letters ~
+<br>
+**Challenge:**  
+Kyle got his letters confused. Help him out:
+
+```
+Dayq ymk rmxx, ngf yk oubtqd iuxx dqymuz. Fmwq ftue rxms uz dqyqyndmzoq: xmemofr{nq_eturfqp_za_yadq}
+```
+
+**Solution:**  
+We tried to bruteforce the cipher text using [planetcalc.com](http://www.planetcalc.com/1434/){:target="_blank"} and found that this was Caesar cipher with the key ROT-14
+
+```
+ROT14:	Rome may fall, but my cipher will remain. Take this flag in 
+remembrance: lasactf{be_shifted_no_more}
+```
+
+**Flag:**  
+
+```
+lasactf{be_shifted_no_more}
+```
+
+<hr>
+<br>
+
+## * Web 10: Four-Oh-Four ~
+<br>
+**Challenge:**  
+We were trying to make an introductory web problem, but messed up somewhere along the way. 
+
+```
+http://web.lasactf.com:2395
+```
+
+**Solution:**  
+We get a 404 page but the flag was in the source code
+
+```html
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head><title>404 Not Found</title></head>
+<body bgcolor="white">
+<center><h1>404 Not Found</h1></center>
+<hr><center>nginx/1.8.0</center>
+<!-- Backup flag in case something breaks: lasactf{welc0m3_to_web_dev} -->
+</body>
+</html>
+```
+
+**Flag:**  
+
+```
+lasactf{welc0m3_to_web_dev}
+```
+
+<hr>
+<br>
+
+## * Crypto 20: Easy Symbols ~
+<br>
+**Challenge:**  
+Force, course, horse, norse, source, torse. What does this mean? 
+Note: Flag is not in LASACTF{} format.
+File:
+
+```
+&& &&& !&! !!! ! !&& !& !!! &!&! &&& &&& !&!!
+```
+
+**Solution:**  
+We converted the symbols to morse ('&' => '-', '!' => '.') and translated with [unit-conversion.info](http://www.unit-conversion.info/texttools/morse-code/#data){:target="_blank"} :
+
+```
+-- --- .-. ... . .-- .- ... -.-. --- --- .-..
+```
+
+**Flag:**  
+
+```
+morsewascool
+```
+
+<hr>
+<br>
+
+## * Reversing 30: Easy ~
+<br>
+**Challenge:**  
+Find the flag in this file!<br>
+[easy.exe](https://github.com/sythonic/sythonic.github.io/blob/master/2016-04-02-LASACTF-2016_writeupfiles/easy.exe){:target="_blank"}
+
+**Solution:**  
+By the help of [Strings v2.52](https://technet.microsoft.com/en-us/sysinternals/strings.aspx){:target="_blank"} by Mark Russinovich, we found the strings inside the `easy.exe` and found the flag.
+
+```
+$ strings easy.exe
+[..]
+GetModuleHandleW
+KERNEL32.dll
+lasactf{th1s_fl4g_i5_3asy}
+<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
+<assembly xmlns='urn:schemas-microsoft-com:asm.v1' manifestVersion='1.0'
+[..]
+
+```
+
+**Flag:**  
+
+```
+lasactf{th1s_fl4g_i5_3asy}
+```
+
+<hr>
+<br>
+
+## * Forensics 40: R3ndom Eye ~
+<br>
+**Challenge:**  
+The flag is in the eye of the beholder.
+
+![eyeofthetiger.jpg](https://www.github.com/sythonic/sythonic.github.io/blob/master/2016-04-02-LASACTF-2016_writeupfiles/eyeofthetiger.jpg?raw=true "eyeofthetiger.jpg")
+
+**Solution:**  
+We used binwalk to find out that there is a .png file attached to the image:
+
+```
+binwalk -e eyeofthetiger.jpg 
+
+DECIMAL       HEXADECIMAL     DESCRIPTION
+--------------------------------------------------------------------------------
+0             0x0             JPEG image data, JFIF standard 1.01
+2074750       0x1FA87E        PNG image, 905 x 460, 8-bit/color RGB, non-interlaced
+2074841       0x1FA8D9        Zlib compressed data, compressed
+
+```
+
+We extracted the .png file with the following command:
+
+```
+binwalk -e --dd=png eyeofthetiger.jpg 
+```
+
+![eye.png](https://github.com/sythonic/sythonic.github.io/blob/master/2016-04-02-LASACTF-2016_writeupfiles/eye.png?raw=true "eye.png")
+
+**Flag:**  
+
+```
+lasactf{rip_my_curly_braces}
+```
+
+<hr>
+<br>
+
+## * Misc 40: Grep Quest ~
+<br>
+**Challenge:**  
+Locate the flag in all the words at `/problems/grep-quest_0/grepy-words/`
+
+**Solution:**  
+We used the shell to simply grep for `lasasctf` in all the files in the directory:
+
+```bash
+$ sythonic@kali:~# cd /problems/grep-quest_0/grepy-words/
+
+$ sythonic@kali:/problems/grep-quest_0/grepy-words# ls
+absconder.txt         ectoplasmatic.txt        monospondylic.txt       semiseriously.txt
+accordantly.txt       eimer.txt                Morgana.txt             septemfid.txt
+acidyl.txt            electrotherapeutic.txt   mountainless.txt        serrated.txt
+actinomeric.txt       emblemist.txt            multicylinder.txt       shadrach.txt
+adiactinic.txt        encage.txt               Musci.txt               sheetwriting.txt
+[..]
+
+$ sythonic@kali:/problems/grep-quest_0/grepy-words# grep lasactf *.txt
+potato.txt:lasactf{1_am_a_h1dd3n_p0tat0}
+```
+
+**Flag**  
+
+```
+lasactf{1_am_a_h1dd3n_p0tat0}
+```
+
+<hr>
+<br>
+
+## * Forensics 50: Lost Extensions ~
+<br>
+**Challenge:**  
+This file got sad and threw away its extension! Maybe you can figure out what it's supposed to be?
+[File: Extensions](https://github.com/sythonic/sythonic.github.io/blob/master/2016-04-02-LASACTF-2016_writeupfiles/Extensions){:target="_blank"}
+
+**Solution:**  
+The file doesn't have an extension, so we tried asking linux what it is:
+
+```
+$ file Extensions
+Extensions: Zip archive data, at least v2.0 to extract
+```
+
+This is a zip file and when we unzipped it we got a txt file without any extension.
+
+```
+o asqwerd
+v 7.517223 0.217741 0.144000
+v 7.500482 0.214009 0.144000
+v 7.486061 0.207875 0.144000
+v 7.473806 0.199407 0.144000
+v 7.463565 0.188676 0.144000
+v 7.455185 0.175750 0.144000
+v 7.448514 0.160699 0.144000
+
+[..]
+
+vn 0.047500 0.998900 0.000000
+vn 0.094400 0.995500 0.000000
+vn 0.140500 0.990100 0.000000
+vn 0.185200 0.982700 0.000000
+vn 0.228200 0.973600 0.000000
+vn 0.269400 0.963000 0.000000
+vn 0.308500 0.951200 0.000000
+vn 0.345300 0.938500 0.000000
+vn 0.379700 0.925100 0.000000
+vn 0.411900 0.911200 0.000000
+vn 0.441800 0.897100 0.000000
+vn 0.853200 0.521500 0.000000
+vn 0.482500 -0.875900 0.000000
+vn 0.502700 -0.864400 0.000000
+vn -0.842600 -0.538500 0.000000
+
+[..]
+
+f 518//1 524//1 523//1
+f 538//1 496//1 539//1
+f 518//1 525//1 524//1
+f 537//1 496//1 538//1
+f 537//1 497//1 496//1
+f 518//1 526//1 525//1
+f 536//1 497//1 537//1
+f 535//1 497//1 536//1
+f 518//1 527//1 526//1
+f 534//1 497//1 535//1
+f 518//1 528//1 527//1
+f 533//1 497//1 534//1
+f 518//1 529//1 528//1
+f 532//1 497//1 533//1
+f 518//1 530//1 529//1
+f 531//1 497//1 532//1
+
+[..]
+```
+
+We managed to find out that this was an .obj file for a 3D model (Ref:  [cs.cmu.edu](http://www.cs.cmu.edu/~mbz/personal/graphics/obj.html){:target="_blank"}).<br>
+Then we viewed the file online via [3dvieweronline.com](https://www.3dvieweronline.com/){:target="_blank"}.
+
+![lostextension.png](https://github.com/sythonic/sythonic.github.io/blob/master/2016-04-02-LASACTF-2016_writeupfiles/lostextension.png?raw=true "lostextension.png")
+
+**Flag:**  
+
+```
+lasactf{wh0_n33ds_3xt3nsions}
+```
+
+<hr>
+<br>
+
+## * Web 50: Postman ~
+<br>
+**Challenge:**  
+Kyle made an super secure website only accesible by the Google Ultron browser. Figure out how to login to his [site](http://web.lasactf.com:45025/){:target="_blank"}.
+
+**Solution:**  
+When we visited the website we got the following message:
+
+```
+Error: Unauthorized browser Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) 
+Ubuntu Chromium/48.0.2564.82 Chrome/48.0.2564.82 Safari/537.36 detected. 
+Only users of "Google Ultron" may access this page.
+```
+
+Then we accessed the website using Firefox and captured the Browser request using Burpsuite and then changed the following:<br>
+
+* `User-Agent : Google Ultron` and got the following response from the server:
+
+```
+Error: "SpecialAuth" header not set to my name
+```
+
+* `SpecialAuth: Kyle`, and forwarded the request to the server. Server responded with the following error messeage:
+
+```
+Error: This site must be accessed from "kyleisacoolguy.org"
+```
+
+* We changed the `Referer: kyleisacoolguy.org` and server replied with the Flag:
+
+![postman.png](https://github.com/sythonic/sythonic.github.io/blob/master/2016-04-02-LASACTF-2016_writeupfiles/postman.png?raw=true "postman.png")
+
+**Flag**  
+
+```
+lasactf{h3aders_ar3_c00l}
+```
+
+<hr>
+<br>
+
+## * Web 70: Client Side ~
+<br>
+**Challenge:**  
+Kyle didn't think his login form was secure enough, so he added Javascript! Smart Right? 
+[http://web.lasactf.com:63017](http://web.lasactf.com:63017){:target="_blank"}
+
+**Solution:**  
+We looked at the source
+
+```html
+<!doctype html>
+<html>
+  <head>
+      <title>Login</title>
+      <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+  </head>
+  <body>
+    <div class="container">
+        <div class="row">
+          <div class="col-md-8 col-md-offset-2">
+
+                <h3>Log In</h3>
+
+                <form action="login.php" method="POST" onsubmit="return checkValid()">
+                    <fieldset>
+                        <div class="form-group">
+                            <label for="username">Username:</label>
+                            <input type="text" id="username" name="username" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Password:</label>
+                            <div class="controls">
+                                <input type="password" id="password" name="password" class="form-control">
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <input type="submit" value="Login" class="btn btn-primary">
+                        </div>
+                    </fieldset>
+                    <span id="helpBlock" class="help-block" style="color:red;"></span>
+                </form>
+                <a href="login.phps">login.php source</a>
+            </div>
+        </div>
+      </div>
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+      <script type="text/javascript">
+        function checkValid(){
+          if( /[^a-zA-Z0-9]/.test($('#username').val()) || /[^a-zA-Z0-9]/.test($('#password').val())) {
+           $('#helpBlock').text("Error, invalid characters detected");
+           return false;
+          }
+          return true;
+        }
+      </script>
+  </body>
+</html>
+```
+
+And as `login.php` source is provided it is quite clear that the sql injection exists...
+
+```php
+<?php
+  include "config.php";
+  $con = new SQLite3($database_file);
+
+  $username = $_POST["username"];
+  $password = $_POST["password"];
+  $query = "SELECT * FROM users WHERE name='$username' AND password='$password'";
+  $result = $con->query($query);
+  $row = $result->fetchArray();
+
+  if ($row) {
+    echo "<h1>Logged in!</h1>";
+    echo "<p>Your flag is: $FLAG</p>";
+  } else {
+    echo "<h1>Login failed.</h1>";
+  }
+?>
+```
+
+So we entered `'` character and the client side javascript replied with:
+
+```
+"Error, Invalid characters detected"
+```
+
+This can be taken care by using NoScript in Iceweasel or disabling javascript by intercepting in burp suite.<br>
+So we entered the following in the password field after disabling javascript.
+
+```
+' or 1 --
+```
+
+and the flag popped out:
+
+```
+Logged in!
+Your flag is: lasactf{cl1ent_sid3_b3st_s1de}
+```
+
+**Flag:**
+
+```
+lasactf{cl1ent_sid3_b3st_s1de}
+```
+
+<hr>
+<br>
